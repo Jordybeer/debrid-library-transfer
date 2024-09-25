@@ -8,13 +8,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [darkMode, toggleDarkMode] = useDarkMode();
 
   return (
-    <>
-      <header className="flex items-center justify-between py-4 px-6 bg-gray-100 dark:bg-gray-800">
+    <div className="min-h-screen flex flex-col">
+      <header className="flex items-center justify-between py-4 px-6 bg-white bg-opacity-10 backdrop-blur-md">
         <h1 className="text-2xl font-bold">Debrid Migration Tool</h1>
         <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       </header>
-      <main className="p-6">{children}</main>
-    </>
+      <main className="flex-grow flex items-center justify-center">
+        {children}
+      </main>
+    </div>
   );
 };
 

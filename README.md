@@ -61,6 +61,17 @@ I'm writing this webapp because as of right now it isn't possible to easily tran
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Current State
+
+2024-09-25
+
+You can succesfully link your device to Real Debrid & it accepts your All Debrid API key.
+It generates a code and after pressing continue it starts polling RD api in the backend.
+When succeeded it displays a list of all torrents from RD along with checkboxes.
+
+At the bottom you'll find a button to export the checked torrents to All Debrid but it asks for authentication despite having provided the API key. 
+
+Currently looking into that ^
 
 
 <!-- GETTING STARTED -->

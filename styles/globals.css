@@ -5,9 +5,5 @@
 
 /* Custom global styles */
 body {
-  @apply bg-white text-gray-900;
-}
-
-.dark {
-  @apply bg-gray-900 text-gray-100;
+  @apply bg-gradient-to-b from-blue-600 to-purple-800 text-white;
 }
