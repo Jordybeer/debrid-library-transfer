@@ -1,23 +1,11 @@
 // components/Layout.tsx
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
+import useDarkMode from '../hooks/useDarkMode';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    // Check for saved user preference
-    const savedMode = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(savedMode);
-    document.documentElement.classList.toggle('dark', savedMode);
-  }, []);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark', !darkMode);
-    localStorage.setItem('darkMode', String(!darkMode));
-  };
+  const [darkMode, toggleDarkMode] = useDarkMode();
 
   return (
     <>

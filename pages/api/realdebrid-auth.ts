@@ -5,33 +5,67 @@ import axios from 'axios';
 
 const REAL_DEBRID_AUTH_URL = 'https://api.real-debrid.com/oauth/v2';
 
+let deviceCode = '';
+let interval = 0;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
+  const { polling } = req.query;
 
-  if (!code) {
-    // Step 1: Redirect user to Real-Debrid authorization URL
-    const authUrl = `${REAL_DEBRID_AUTH_URL}/authorize?client_id=${process.env.REAL_DEBRID_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_BASE_URL}/api/realdebrid-auth`;
-    res.redirect(authUrl);
-  } else {
-    // Step 2: Exchange code for access token
+  if (!polling) {
+    // Step 1: Start device authentication flow
     try {
-      const tokenResponse = await axios.post(`${REAL_DEBRID_AUTH_URL}/token`, null, {
-        params: {
-          client_id: process.env.REAL_DEBRID_CLIENT_ID,
-          client_secret: process.env.REAL_DEBRID_CLIENT_SECRET,
-          code,
-          grant_type: 'http://oauth.net/grant_type/device/1.0',
-        },
-      });
-
-      // Store the access token in a cookie (for simplicity)
-      res.setHeader(
-        'Set-Cookie',
-        `rd_access_token=${tokenResponse.data.access_token}; Path=/; HttpOnly; Secure;`
+      const response = await axios.post(
+        `${REAL_DEBRID_AUTH_URL}/device/code`,
+        null,
+        {
+          params: {
+            client_id: 'X245A4XAIBGVM',
+            new_credentials: 'yes',
+          },
+        }
       );
-      res.redirect('/');
+
+      deviceCode = response.data.device_code;
+      interval = response.data.interval;
+
+      // Send user_code and verification_url to the client
+      res.status(200).json({
+        user_code: response.data.user_code,
+        verification_url: response.data.verification_url,
+        interval: response.data.interval,
+      });
     } catch (error) {
-      res.status(500).send('Authentication with Real-Debrid failed.');
+      console.error('Device code error:', error.response?.data || error.message);
+      res.status(500).json({ error: 'Failed to start device authentication.' });
+    }
+  } else {
+    // Step 2: Poll for token
+    try {
+      const tokenResponse = await axios.post(
+        `${REAL_DEBRID_AUTH_URL}/device/credentials`,
+        null,
+        {
+          params: {
+            client_id: 'X245A4XAIBGVM',
+            code: deviceCode,
+          },
+        }
+      );
+
+      // Store the access token in a cookie
+      res.setHeader('Set-Cookie', [
+        `rd_access_token=${tokenResponse.data.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax;`,
+      ]);
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      if (error.response?.data?.error === 'authorization_pending') {
+        // User hasn't authorized yet; continue polling
+        res.status(200).json({ success: false });
+      } else {
+        console.error('Token polling error:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Failed to retrieve access token.' });
+      }
     }
   }
 }

@@ -46,7 +46,7 @@ const TorrentList: React.FC<TorrentListProps> = ({
                 {torrent.filename}
               </label>
             </div>
-            <span className="text-sm text-gray-500">{torrent.size} MB</span>
+            <span className="text-sm text-gray-500">{(torrent.bytes / 1e6).toFixed(2)} MB</span>
           </li>
         );
       })}

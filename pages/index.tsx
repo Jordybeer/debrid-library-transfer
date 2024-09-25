@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import TorrentList from '../components/TorrentList';
+import DeviceAuth from '../components/DeviceAuth';
 
 export default function Home() {
   const [torrents, setTorrents] = useState([]);
@@ -33,39 +34,35 @@ export default function Home() {
       .catch((error) => alert(error.response.data.error));
   };
 
-  if (!isAuthenticated) {
+  if (!document.cookie.includes('rd_access_token')) {
+    return <DeviceAuth />;
+  }
+
+  if (!document.cookie.includes('ad_api_key')) {
     return (
       <div className="max-w-xl mx-auto mt-10">
         <p className="mb-6 text-lg">
-          Please authenticate with both Real-Debrid and AllDebrid to start migrating your torrents.
+          Please enter your AllDebrid API key to continue.
         </p>
-        <div className="space-y-4">
-          <a
-            href="/api/realdebrid-auth"
-            className="block w-full text-center py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
+        <form
+          action="/api/alldebrid-auth"
+          method="POST"
+          className="flex items-center space-x-2"
+        >
+          <input
+            type="text"
+            name="apiKey"
+            placeholder="AllDebrid API Key"
+            required
+            className="flex-grow py-2 px-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+          <button
+            type="submit"
+            className="py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            Authenticate with Real-Debrid
-          </a>
-          <form
-            action="/api/alldebrid-auth"
-            method="POST"
-            className="flex items-center space-x-2"
-          >
-            <input
-              type="text"
-              name="apiKey"
-              placeholder="AllDebrid API Key"
-              required
-              className="flex-grow py-2 px-4 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-            <button
-              type="submit"
-              className="py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Submit
-            </button>
-          </form>
-        </div>
+            Submit
+          </button>
+        </form>
       </div>
     );
   }
