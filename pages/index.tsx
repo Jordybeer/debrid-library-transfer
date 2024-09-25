@@ -8,24 +8,24 @@ import DeviceAuth from '../components/DeviceAuth';
 export default function Home() {
   const [torrents, setTorrents] = useState([]);
   const [selectedTorrents, setSelectedTorrents] = useState<string[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasRdAccessToken, setHasRdAccessToken] = useState<boolean | null>(null);
+  const [hasAdApiKey, setHasAdApiKey] = useState<boolean | null>(null);
 
   // Check authentication status
   useEffect(() => {
-    const rdAccessToken = document.cookie.includes('rd_access_token');
-    const adApiKey = document.cookie.includes('ad_api_key');
-    setIsAuthenticated(rdAccessToken && adApiKey);
-  }, []);
+    const hasRdToken = document.cookie.includes('rd_access_token');
+    const hasAdKey = document.cookie.includes('ad_api_key');
+    setHasRdAccessToken(hasRdToken);
+    setHasAdApiKey(hasAdKey);
 
-  // Fetch torrents from Real-Debrid
-  useEffect(() => {
-    if (isAuthenticated) {
+    if (hasRdToken && hasAdKey) {
+      // Fetch torrents if authenticated
       axios
         .get('/api/get-torrents')
         .then((response) => setTorrents(response.data))
         .catch((error) => console.error(error));
     }
-  }, [isAuthenticated]);
+  }, []);
 
   const handleMigrate = () => {
     axios
@@ -34,11 +34,16 @@ export default function Home() {
       .catch((error) => alert(error.response.data.error));
   };
 
-  if (!document.cookie.includes('rd_access_token')) {
+  if (hasRdAccessToken === null || hasAdApiKey === null) {
+    // While checking authentication status, render nothing or a loading state
+    return null; // or return <div>Loading...</div>;
+  }
+
+  if (!hasRdAccessToken) {
     return <DeviceAuth />;
   }
 
-  if (!document.cookie.includes('ad_api_key')) {
+  if (!hasAdApiKey) {
     return (
       <div className="max-w-xl mx-auto mt-10">
         <p className="mb-6 text-lg">
